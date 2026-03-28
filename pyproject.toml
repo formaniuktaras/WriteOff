@@ -1,0 +1,27 @@
+[project]
+name = "writeoff"
+version = "0.1.0"
+description = "Private self-hosted event/asset/document accounting system"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi==0.115.12",
+  "uvicorn[standard]==0.34.0",
+  "jinja2==3.1.6",
+  "sqlalchemy==2.0.40",
+  "alembic==1.15.2",
+  "psycopg[binary]==3.2.6",
+  "pydantic==2.11.2",
+  "pydantic-settings==2.8.1",
+  "python-multipart==0.0.20",
+  "passlib[argon2]==1.7.4",
+  "itsdangerous==2.2.0",
+  "openpyxl==3.1.5",
+  "python-slugify==8.0.4",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["app"]
