@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="h3">Event #{{ event.id }} — {{ event.title }}</h1>
+<p class="text-muted">{{ event.event_date }} | {{ event.status.value }} | {{ event.location or '—' }}</p>
+<div class="mb-3"><a class="btn btn-outline-primary" href="/events/{{ event.id }}/export">Export Event</a></div>
+
+<ul class="nav nav-tabs" role="tablist">
+  <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#general">General</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#units">Units</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#items">Items</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#documents">Documents</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#valuations">Valuations</button></li>
+  <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#audit">Audit</button></li>
+</ul>
+<div class="tab-content border border-top-0 p-3">
+  <div class="tab-pane fade show active" id="general"><p>{{ event.short_description or 'No description' }}</p></div>
+  <div class="tab-pane fade" id="units">
+    <form method="post" action="/events/{{ event.id }}/units" class="row g-2 mb-3">
+      <div class="col-md-6"><select class="form-select" name="unit_id">{% for unit in units %}<option value="{{ unit.id }}">{{ unit.code }} — {{ unit.name }}</option>{% endfor %}</select></div>
+      <div class="col-md-3 form-check mt-2"><input class="form-check-input" type="checkbox" name="is_primary" value="true"> Primary</div>
+      <div class="col-md-3"><button class="btn btn-primary w-100">Add unit</button></div>
+    </form>
+    <ul>{% for eu in event_units %}<li>{{ eu.unit_id }} {% if eu.is_primary %}<strong>(primary)</strong>{% endif %}</li>{% endfor %}</ul>
+  </div>
+  <div class="tab-pane fade" id="items">
+    <form method="post" action="/events/{{ event.id }}/items" class="row g-2 mb-3">
+      <div class="col-md-2"><select class="form-select" name="unit_id">{% for unit in units %}<option value="{{ unit.id }}">{{ unit.code }}</option>{% endfor %}</select></div>
+      <div class="col-md-2"><select class="form-select" name="service_id">{% for service in services %}<option value="{{ service.id }}">{{ service.code }}</option>{% endfor %}</select></div>
+      <div class="col-md-2"><select class="form-select" name="kind"><option value="object">object</option><option value="group">group</option></select></div>
+      <div class="col-md-2"><input class="form-control" name="qty" type="number" min="1" value="1"></div>
+      <div class="col-md-2"><select class="form-select" name="asset_object_id"><option value="">Asset object</option>{% for ao in asset_objects %}<option value="{{ ao.id }}">{{ ao.id }} {{ ao.inventory_number or ao.serial_number or '' }}</option>{% endfor %}</select></div>
+      <div class="col-md-2"><select class="form-select" name="nomenclature_id"><option value="">Nomenclature</option>{% for n in nomenclature %}<option value="{{ n.id }}">{{ n.code }}</option>{% endfor %}</select></div>
+      <div class="col-9"><input class="form-control" name="notes" placeholder="notes"></div>
+      <div class="col-3"><button class="btn btn-primary w-100">Add item</button></div>
+    </form>
+    <table class="table table-sm"><thead><tr><th>ID</th><th>Kind</th><th>Unit</th><th>Service</th><th>Qty</th></tr></thead><tbody>{% for i in event_items %}<tr><td>{{ i.id }}</td><td>{{ i.kind.value }}</td><td>{{ i.unit_id }}</td><td>{{ i.service_id }}</td><td>{{ i.qty }}</td></tr>{% endfor %}</tbody></table>
+  </div>
+  <div class="tab-pane fade" id="documents">
+    <form method="post" action="/events/{{ event.id }}/documents" enctype="multipart/form-data" class="row g-2 mb-3">
+      <div class="col-md-2"><select class="form-select" name="document_type_id">{% for d in doc_types %}<option value="{{ d.id }}">{{ d.code }}</option>{% endfor %}</select></div>
+      <div class="col-md-2"><input class="form-control" name="doc_no" placeholder="No" required></div>
+      <div class="col-md-2"><input class="form-control" type="date" name="doc_date"></div>
+      <div class="col-md-2"><input class="form-control" type="date" name="reg_date"></div>
+      <div class="col-md-2"><input class="form-control" name="title" placeholder="Title"></div>
+      <div class="col-md-2"><input class="form-control" type="file" name="file" required></div>
+      <div class="col-12"><button class="btn btn-primary">Upload document</button></div>
+    </form>
+    <ul>{% for d in documents %}<li><a href="/documents/{{ d.id }}/download">{{ d.doc_no }}</a> / {{ d.title or '' }} / {{ d.file_path }}</li>{% endfor %}</ul>
+    <div class="alert alert-secondary">Template generation contract is prepared in service layer (MVP stub).</div>
+  </div>
+  <div class="tab-pane fade" id="valuations">
+    <form method="post" action="/events/{{ event.id }}/valuations" class="row g-2 mb-3">
+      <div class="col-md-3"><select class="form-select" name="valuation_kind">{% for k in valuation_kinds %}<option value="{{ k.value }}">{{ k.value }}</option>{% endfor %}</select></div>
+      <div class="col-md-2"><input class="form-control" type="date" name="date_effective" required></div>
+      <div class="col-md-2"><input class="form-control" name="value_uah" placeholder="UAH"></div>
+      <div class="col-md-2"><select class="form-select" name="document_id"><option value="">Doc</option>{% for d in documents %}<option value="{{ d.id }}">{{ d.doc_no }}</option>{% endfor %}</select></div>
+      <div class="col-md-3"><input class="form-control" name="notes" placeholder="notes"></div>
+      <div class="col-12"><button class="btn btn-primary">Add valuation</button></div>
+    </form>
+    <h6>Residual wizard</h6>
+    <form method="post" action="/events/{{ event.id }}/valuations/residual" class="row g-2 mb-3">
+      <div class="col-md-2"><select class="form-select" name="service_id">{% for s in services %}<option value="{{ s.id }}">{{ s.code }}</option>{% endfor %}</select></div>
+      <div class="col-md-2"><input class="form-control" type="date" name="date_effective" required></div>
+      <div class="col-md-2"><input class="form-control" name="value_uah" required></div>
+      <div class="col-md-2"><select class="form-select" name="document_id"><option value="">Doc</option>{% for d in documents %}<option value="{{ d.id }}">{{ d.doc_no }}</option>{% endfor %}</select></div>
+      <div class="col-md-4"><input class="form-control" name="notes" placeholder="notes"></div>
+      {% for i in event_items %}
+      <div class="col-md-4"><label><input type="checkbox" name="link_item_ids" value="{{ i.id }}"> item {{ i.id }} (qty {{ i.qty }})</label></div>
+      <div class="col-md-2"><input class="form-control" type="number" name="link_qtys" value="1" min="1" max="{{ i.qty }}"></div>
+      {% endfor %}
+      <div class="col-12"><button class="btn btn-warning">Save residual valuation</button></div>
+    </form>
+    <table class="table table-sm"><thead><tr><th>ID</th><th>Kind</th><th>Date</th><th>Value</th></tr></thead><tbody>{% for v in valuations %}<tr><td>{{ v.id }}</td><td>{{ v.valuation_kind.value }}</td><td>{{ v.date_effective }}</td><td>{{ v.value_uah }}</td></tr>{% endfor %}</tbody></table>
+  </div>
+  <div class="tab-pane fade" id="audit"><ul>{% for a in audit %}<li>{{ a.created_at }} | {{ a.action }} | {{ a.diff_json }}</li>{% endfor %}</ul></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}
