@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3">Asset objects</h1>
+  {% if current_user.role.code in ['admin','operator'] %}<a class="btn btn-primary" href="/asset-objects/new">Create object</a>{% endif %}
+</div>
+<form method="get" class="row g-2 mb-3">
+  <div class="col-md-4"><input class="form-control" name="q" value="{{ q }}" placeholder="Search by inventory/serial/VIN/name"></div>
+  <div class="col-md-2"><button class="btn btn-outline-secondary">Search</button></div>
+</form>
+<table class="table table-striped"><thead><tr><th>ID</th><th>Name</th><th>Inventory</th><th>Serial/VIN</th><th>State</th><th></th></tr></thead><tbody>
+{% for asset, nomenclature in assets %}
+<tr>
+  <td>#{{ asset.id }}</td>
+  <td><a href="/asset-objects/{{ asset.id }}">{{ nomenclature.code }} — {{ nomenclature.name }}</a></td>
+  <td>{{ asset.inventory_number or '—' }}</td>
+  <td>{{ asset.serial_number or asset.vin or '—' }}</td>
+  <td>{{ asset.state.value if asset.state else '—' }}</td>
+  <td>{% if current_user.role.code in ['admin','operator'] %}<a class="btn btn-sm btn-outline-primary" href="/asset-objects/{{ asset.id }}/edit">Edit</a>{% endif %}</td>
+</tr>
+{% endfor %}
+</tbody></table>
+{% endblock %}

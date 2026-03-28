@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="h3">Edit item #{{ item.id }} (event #{{ event.id }})</h1>
+<form method="post" action="/events/{{ event.id }}/items/{{ item.id }}/edit" class="row g-3">
+  <div class="col-md-3"><label class="form-label">Unit</label><select class="form-select" name="unit_id">{% for unit in units %}<option value="{{ unit.id }}" {% if unit.id == item.unit_id %}selected{% endif %}>{{ unit.code }} — {{ unit.name }}</option>{% endfor %}</select></div>
+  <div class="col-md-3"><label class="form-label">Service</label><select class="form-select" name="service_id">{% for service in services %}<option value="{{ service.id }}" {% if service.id == item.service_id %}selected{% endif %}>{{ service.code }} — {{ service.name }}</option>{% endfor %}</select></div>
+  <div class="col-md-2"><label class="form-label">Qty</label><input class="form-control" name="qty" type="number" min="1" value="{{ item.qty }}"></div>
+  <div class="col-md-4"><label class="form-label">Notes</label><input class="form-control" name="notes" value="{{ item.notes or '' }}"></div>
+  <div class="col-12"><button class="btn btn-primary">Save</button> <a href="/events/{{ event.id }}" class="btn btn-outline-secondary">Cancel</a></div>
+</form>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="h3">Asset object #{{ asset.id }}</h1>
+<table class="table table-bordered w-75">
+<tr><th>Nomenclature</th><td>{{ nomenclature.code }} — {{ nomenclature.name }}</td></tr>
+<tr><th>Inventory number</th><td>{{ asset.inventory_number or '—' }}</td></tr>
+<tr><th>Serial number</th><td>{{ asset.serial_number or '—' }}</td></tr>
+<tr><th>VIN</th><td>{{ asset.vin or '—' }}</td></tr>
+<tr><th>Plate number</th><td>{{ asset.plate_number or '—' }}</td></tr>
+<tr><th>State</th><td>{{ asset.state.value if asset.state else '—' }}</td></tr>
+<tr><th>Notes</th><td>{{ asset.notes or '—' }}</td></tr>
+<tr><th>Used in event items</th><td>{{ usage_count }}</td></tr>
+</table>
+{% if current_user.role.code in ['admin','operator'] %}
+<div class="d-flex gap-2">
+  <a class="btn btn-primary" href="/asset-objects/{{ asset.id }}/edit">Edit</a>
+  <form method="post" action="/asset-objects/{{ asset.id }}/deactivate"><button class="btn btn-outline-danger">Deactivate</button></form>
+</div>
+{% endif %}
+{% endblock %}

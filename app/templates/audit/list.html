@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="h3">Audit trail</h1>
+<table class="table table-striped table-sm"><thead><tr><th>Date/time</th><th>User</th><th>Action</th><th>Entity</th><th>Description</th></tr></thead><tbody>
+{% for a in records %}
+<tr>
+  <td>{{ a.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+  <td>{{ a.user.username if a.user else 'system' }}</td>
+  <td>{{ a.action }}</td>
+  <td>{{ a.entity_type }} #{{ a.entity_id }}</td>
+  <td>{{ a.description }}</td>
+</tr>
+{% endfor %}
+</tbody></table>
+{% endblock %}

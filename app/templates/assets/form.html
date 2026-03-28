@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="h3">{{ 'Edit asset object #' ~ asset.id if asset else 'Create asset object' }}</h1>
+<form method="post" action="{{ '/asset-objects/' ~ asset.id ~ '/edit' if asset else '/asset-objects/new' }}" class="row g-3">
+  <div class="col-md-4"><label class="form-label">Nomenclature</label><select class="form-select" name="nomenclature_id" required>{% for n in nomenclature %}<option value="{{ n.id }}" {% if asset and asset.nomenclature_id == n.id %}selected{% endif %}>{{ n.code }} — {{ n.name }}</option>{% endfor %}</select></div>
+  <div class="col-md-4"><label class="form-label">Inventory number</label><input class="form-control" name="inventory_number" value="{{ asset.inventory_number if asset else '' }}"></div>
+  <div class="col-md-4"><label class="form-label">Serial number</label><input class="form-control" name="serial_number" value="{{ asset.serial_number if asset else '' }}"></div>
+  <div class="col-md-4"><label class="form-label">VIN</label><input class="form-control" name="vin" value="{{ asset.vin if asset else '' }}"></div>
+  <div class="col-md-4"><label class="form-label">Plate number</label><input class="form-control" name="plate_number" value="{{ asset.plate_number if asset else '' }}"></div>
+  <div class="col-md-4"><label class="form-label">State</label><select class="form-select" name="state"><option value="">—</option>{% for st in states %}<option value="{{ st.value }}" {% if asset and asset.state == st %}selected{% endif %}>{{ st.value }}</option>{% endfor %}</select></div>
+  <div class="col-12"><label class="form-label">Notes</label><textarea class="form-control" name="notes">{{ asset.notes if asset else '' }}</textarea></div>
+  <div class="col-12"><button class="btn btn-primary">Save</button> <a class="btn btn-outline-secondary" href="/asset-objects">Cancel</a></div>
+</form>
+{% endblock %}

@@ -1,10 +1,11 @@
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import (
     JSON,
     CheckConstraint,
     Date,
+    DateTime,
     Enum,
     ForeignKey,
     Integer,
@@ -34,6 +35,7 @@ class User(Base, TimestampMixin, SoftDeleteMixin):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role_id: Mapped[int] = mapped_column(ForeignKey("roles.id"), nullable=False)
     is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
+    last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
     role: Mapped[Role] = relationship()
 
@@ -182,5 +184,8 @@ class AuditLog(Base):
     entity_id: Mapped[str] = mapped_column(String(80), nullable=False)
     action: Mapped[str] = mapped_column(String(40), nullable=False)
     user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    description: Mapped[str] = mapped_column(String(255), nullable=False)
     diff_json: Mapped[dict | None] = mapped_column(JSON)
-    created_at: Mapped[date] = mapped_column(Date, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+
+    user: Mapped[User | None] = relationship()
