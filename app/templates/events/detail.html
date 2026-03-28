@@ -66,7 +66,7 @@
       <div class="col-md-4"><input class="form-control" name="notes" placeholder="notes"></div>
       {% for i in event_items %}
       <div class="col-md-4"><label><input type="checkbox" name="link_item_ids" value="{{ i.id }}"> item {{ i.id }} (qty {{ i.qty }})</label></div>
-      <div class="col-md-2"><input class="form-control" type="number" name="link_qtys" value="1" min="1" max="{{ i.qty }}"></div>
+      <div class="col-md-2"><input class="form-control" type="number" name="qty_by_item_{{ i.id }}" value="1" min="1" max="{{ i.qty }}"></div>
       {% endfor %}
       <div class="col-12"><button class="btn btn-warning">Save residual valuation</button></div>
     </form>

@@ -41,14 +41,29 @@ class FileStorageService:
 
         filename = self._safe_name(target_name or upload.filename or "upload.bin")
         path = event_dir / filename
+        suffix = 1
+        while path.exists():
+            path = event_dir / f"{path.stem}__{suffix}{path.suffix}"
+            suffix += 1
         hasher = hashlib.sha256()
         total = 0
+        max_size_bytes = settings.max_upload_mb * 1024 * 1024
 
-        with path.open("wb") as f:
-            while chunk := await upload.read(1024 * 1024):
-                total += len(chunk)
-                hasher.update(chunk)
-                f.write(chunk)
+        try:
+            with path.open("wb") as f:
+                while chunk := await upload.read(1024 * 1024):
+                    total += len(chunk)
+                    if total > max_size_bytes:
+                        raise ValueError(f"File exceeds max size of {settings.max_upload_mb} MB")
+                    hasher.update(chunk)
+                    f.write(chunk)
+        except Exception:
+            path.unlink(missing_ok=True)
+            raise
+
+        if total <= 0:
+            path.unlink(missing_ok=True)
+            raise ValueError("Uploaded file is empty")
 
         rel = path.relative_to(self.root)
         return StoredFile(relative_path=str(rel), sha256=hasher.hexdigest(), size=total)
