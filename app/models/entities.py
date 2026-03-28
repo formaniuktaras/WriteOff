@@ -82,7 +82,7 @@ class AssetObject(Base, TimestampMixin, SoftDeleteMixin):
     serial_number: Mapped[str | None] = mapped_column(String(120))
     vin: Mapped[str | None] = mapped_column(String(120))
     plate_number: Mapped[str | None] = mapped_column(String(60))
-    state: Mapped[AssetState | None] = mapped_column(Enum(AssetState, name="asset_state"))
+    state: Mapped[AssetState | None] = mapped_column(Enum(AssetState, name="asset_state", native_enum=False))
     notes: Mapped[str | None] = mapped_column(Text)
 
 
@@ -90,7 +90,7 @@ class Event(Base, TimestampMixin, SoftDeleteMixin):
     __tablename__ = "events"
     id: Mapped[int] = mapped_column(primary_key=True)
     event_date: Mapped[date] = mapped_column(Date, nullable=False)
-    status: Mapped[EventStatus] = mapped_column(Enum(EventStatus, name="event_status"), default=EventStatus.DRAFT, nullable=False)
+    status: Mapped[EventStatus] = mapped_column(Enum(EventStatus, name="event_status", native_enum=False), default=EventStatus.DRAFT, nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     short_description: Mapped[str | None] = mapped_column(Text)
     location: Mapped[str | None] = mapped_column(String(255))
@@ -128,7 +128,7 @@ class EventItem(Base, TimestampMixin, SoftDeleteMixin):
     event_id: Mapped[int] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), nullable=False)
     unit_id: Mapped[int] = mapped_column(ForeignKey("units.id"), nullable=False)
     service_id: Mapped[int] = mapped_column(ForeignKey("services.id"), nullable=False)
-    kind: Mapped[EventItemKind] = mapped_column(Enum(EventItemKind, name="event_item_kind"), nullable=False)
+    kind: Mapped[EventItemKind] = mapped_column(Enum(EventItemKind, name="event_item_kind", native_enum=False), nullable=False)
     asset_object_id: Mapped[int | None] = mapped_column(ForeignKey("asset_objects.id"))
     nomenclature_id: Mapped[int | None] = mapped_column(ForeignKey("nomenclature.id"))
     qty: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -156,7 +156,7 @@ class Valuation(Base, TimestampMixin, SoftDeleteMixin):
     __tablename__ = "valuations"
     id: Mapped[int] = mapped_column(primary_key=True)
     event_id: Mapped[int] = mapped_column(ForeignKey("events.id", ondelete="CASCADE"), nullable=False)
-    valuation_kind: Mapped[ValuationKind] = mapped_column(Enum(ValuationKind, name="valuation_kind"), nullable=False)
+    valuation_kind: Mapped[ValuationKind] = mapped_column(Enum(ValuationKind, name="valuation_kind", native_enum=False), nullable=False)
     document_id: Mapped[int | None] = mapped_column(ForeignKey("documents.id"))
     value_uah: Mapped[Decimal | None] = mapped_column(Numeric(14, 2))
     date_effective: Mapped[date] = mapped_column(Date, nullable=False)

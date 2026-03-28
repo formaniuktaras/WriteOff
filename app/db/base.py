@@ -1,5 +1,5 @@
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import DateTime, func
+from sqlalchemy import DateTime, func, text
 
 
 class Base(DeclarativeBase):
@@ -14,4 +14,4 @@ class TimestampMixin:
 
 
 class SoftDeleteMixin:
-    is_deleted: Mapped[bool] = mapped_column(default=False, nullable=False)
+    is_deleted: Mapped[bool] = mapped_column(default=False, server_default=text("false"), nullable=False)

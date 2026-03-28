@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
 from fastapi.responses import FileResponse, RedirectResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -174,7 +174,10 @@ async def add_document(
     ext = Path(file.filename or "tmp.bin").suffix
     target_name = f"{date.today().isoformat()}__{unit_name}__{doc_type.code if doc_type else 'doc'}__No{doc_no}__reg_{reg_date or date.today().isoformat()}{ext}"
 
-    stored = await FileStorageService().save_event_document(event_id=event_id, upload=file, target_name=target_name)
+    try:
+        stored = await FileStorageService().save_event_document(event_id=event_id, upload=file, target_name=target_name)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     doc = Document(
         event_id=event_id,
         document_type_id=document_type_id,
@@ -229,18 +232,49 @@ def add_valuation(
 
 
 @router.post("/events/{event_id}/valuations/residual")
-def add_residual_valuation(
+async def add_residual_valuation(
     event_id: int,
+    request: Request,
     service_id: int = Form(...),
     date_effective: str = Form(...),
     value_uah: str = Form(...),
     document_id: int | None = Form(None),
     notes: str = Form(""),
     link_item_ids: list[int] = Form([]),
-    link_qtys: list[int] = Form([]),
     db: Session = Depends(get_db),
     user: User = Depends(require_roles("admin", "operator")),
 ):
+    form_data = await request.form()
+
+    items = db.query(EventItem).filter(EventItem.event_id == event_id, EventItem.service_id == service_id, EventItem.is_deleted.is_(False)).all()
+    allowed_qty = {item.id: item.qty for item in items}
+
+    if not link_item_ids:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Select at least one item for residual valuation")
+
+    unique_item_ids: set[int] = set()
+    links: list[tuple[int, int]] = []
+    for item_id in link_item_ids:
+        if item_id in unique_item_ids:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Duplicate item in residual valuation request")
+        unique_item_ids.add(item_id)
+
+        if item_id not in allowed_qty:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Item {item_id} is not available for this service")
+
+        raw_qty = str(form_data.get(f"qty_by_item_{item_id}", "")).strip()
+        if not raw_qty:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Quantity is required for item {item_id}")
+        try:
+            qty = int(raw_qty)
+        except ValueError as exc:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Quantity for item {item_id} must be integer") from exc
+
+        if qty <= 0 or qty > allowed_qty[item_id]:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Quantity for item {item_id} must be in range 1..{allowed_qty[item_id]}")
+
+        links.append((item_id, qty))
+
     valuation = Valuation(
         event_id=event_id,
         valuation_kind=ValuationKind.RESIDUAL_VALUE_STATEMENT,
@@ -252,13 +286,7 @@ def add_residual_valuation(
     db.add(valuation)
     db.flush()
 
-    items = db.query(EventItem).filter(EventItem.event_id == event_id, EventItem.service_id == service_id, EventItem.is_deleted.is_(False)).all()
-    allowed_qty = {item.id: item.qty for item in items}
-
-    for idx, item_id in enumerate(link_item_ids):
-        qty = link_qtys[idx] if idx < len(link_qtys) else 0
-        if item_id not in allowed_qty or qty <= 0 or qty > allowed_qty[item_id]:
-            raise HTTPException(400, "Invalid residual link quantity")
+    for item_id, qty in links:
         db.add(ValuationLink(valuation_id=valuation.id, event_item_id=item_id, applies_qty=qty))
 
     AuditService(db).log(entity_type="event", entity_id=str(event_id), action="add_residual", user_id=user.id, diff={"valuation_id": valuation.id})
