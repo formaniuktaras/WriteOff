@@ -3,14 +3,23 @@
 <div class="d-flex justify-content-between align-items-center mb-3"><h1 class="h3">Events</h1></div>
 <div class="card mb-4"><div class="card-body">
 <form class="row g-2" method="post" action="/events">
-  <div class="col-md-3"><input class="form-control" name="event_date" type="date" required></div>
-  <div class="col-md-4"><input class="form-control" name="title" placeholder="Title" required></div>
-  <div class="col-md-3"><input class="form-control" name="location" placeholder="Location"></div>
-  <div class="col-md-2"><button class="btn btn-primary w-100">Create</button></div>
-  <div class="col-12"><input class="form-control" name="short_description" placeholder="Short description"></div>
+  <div class="col-md-2"><label class="form-label">Date</label><input class="form-control" name="event_date" type="date" required></div>
+  <div class="col-md-4"><label class="form-label">Title</label><input class="form-control" name="title" placeholder="Title" required></div>
+  <div class="col-md-2"><label class="form-label">Status</label><select class="form-select" name="status_value"><option value="draft">Draft</option><option value="active">Active</option><option value="closed">Closed</option></select></div>
+  <div class="col-md-2"><label class="form-label">Location</label><input class="form-control" name="location" placeholder="Location"></div>
+  <div class="col-md-2 d-flex align-items-end"><button class="btn btn-primary w-100">Create</button></div>
+  <div class="col-12"><label class="form-label">Short description</label><input class="form-control" name="short_description" placeholder="Short description"></div>
 </form>
 </div></div>
-<table class="table table-striped"><thead><tr><th>ID</th><th>Date</th><th>Title</th><th>Status</th></tr></thead><tbody>
-{% for e in events %}<tr><td><a href="/events/{{ e.id }}">{{ e.id }}</a></td><td>{{ e.event_date }}</td><td>{{ e.title }}</td><td>{{ e.status.value }}</td></tr>{% endfor %}
+<table class="table table-striped"><thead><tr><th>Event</th><th>Date</th><th>Title</th><th>Status</th><th></th></tr></thead><tbody>
+{% for e in events %}
+<tr>
+  <td>#{{ e.id }}</td>
+  <td>{{ e.event_date }}</td>
+  <td><a href="/events/{{ e.id }}">{{ e.title }}</a></td>
+  <td><span class="badge text-bg-secondary">{{ e.status.value }}</span></td>
+  <td><a class="btn btn-sm btn-outline-primary" href="/events/{{ e.id }}/edit">Edit</a></td>
+</tr>
+{% endfor %}
 </tbody></table>
 {% endblock %}

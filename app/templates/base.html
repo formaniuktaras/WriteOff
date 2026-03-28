@@ -14,17 +14,24 @@
     {% if current_user %}
     <div class="navbar-nav gap-2">
       <a class="nav-link" href="/events">Events</a>
+      <a class="nav-link" href="/asset-objects">Asset objects</a>
       <a class="nav-link" href="/dictionaries/units">Units</a>
       <a class="nav-link" href="/dictionaries/services">Services</a>
       <a class="nav-link" href="/dictionaries/nomenclature">Nomenclature</a>
       <a class="nav-link" href="/dictionaries/document-types">Doc types</a>
-      {% if current_user.role.code == 'admin' %}<a class="nav-link" href="/users">Users</a>{% endif %}
+      {% if current_user.role.code == 'admin' %}
+      <a class="nav-link" href="/users">Users</a>
+      <a class="nav-link" href="/audit">Audit</a>
+      {% endif %}
       <form method="post" action="/logout"><button class="btn btn-sm btn-outline-light">Logout</button></form>
     </div>
     {% endif %}
   </div>
 </nav>
 <main class="container py-4">
+  {% if request.query_params.get('msg') %}
+    <div class="alert alert-success">{{ request.query_params.get('msg') }}</div>
+  {% endif %}
   {% block content %}{% endblock %}
 </main>
 </body>
